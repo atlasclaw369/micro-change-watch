@@ -24,6 +24,8 @@ Confirm:
 
 - [ ] Baseline report generated.
 - [ ] No rejected/private URLs.
+- [ ] URL count is accepted by the selected plan limit.
+- [ ] No secret-looking query parameters, embedded credentials, localhost/private-network targets, or unsafe redirects are present.
 - [ ] No repeated fetch errors.
 - [ ] Diff output is readable enough for manual review.
 

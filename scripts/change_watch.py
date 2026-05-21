@@ -28,6 +28,28 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_STATE = ROOT / "state"
 DEFAULT_REPORTS = ROOT / "reports"
+PLAN_LIMITS = {
+    "starter": 3,
+    "$9/month — starter: 3 urls": 3,
+    "standard": 10,
+    "$19/month — standard: 10 urls": 10,
+    "48-hour": 5,
+    "48-hour watch": 5,
+    "$10 one-off — 48-hour watch: 5 urls": 5,
+}
+SECRET_QUERY_KEYS = {
+    "access_token",
+    "api_key",
+    "apikey",
+    "auth",
+    "code",
+    "key",
+    "password",
+    "secret",
+    "sig",
+    "signature",
+    "token",
+}
 
 def _ip_is_public(ip: ipaddress._BaseAddress) -> tuple[bool, str | None]:
     if (
@@ -94,7 +116,44 @@ def load_customer(path: Path) -> dict[str, Any]:
         raise ValueError("customer is required")
     if not isinstance(data.get("urls"), list) or not data["urls"]:
         raise ValueError("urls must be a non-empty list")
+    config_errors = validate_customer_config(data)
+    if config_errors:
+        raise ValueError("; ".join(config_errors))
     return data
+
+
+def normalize_plan(plan: str) -> str:
+    return re.sub(r"\s+", " ", plan.strip().lower())
+
+
+def plan_limit(plan: str) -> int | None:
+    normalized = normalize_plan(plan)
+    if normalized in PLAN_LIMITS:
+        return PLAN_LIMITS[normalized]
+    if "48-hour" in normalized or "48 hour" in normalized or "one-off" in normalized:
+        return 5
+    if "starter" in normalized:
+        return 3
+    if "standard" in normalized:
+        return 10
+    return None
+
+
+def validate_customer_config(data: dict[str, Any]) -> list[str]:
+    problems: list[str] = []
+    plan = str(data.get("plan", "")).strip()
+    if not plan:
+        problems.append("plan is required")
+    else:
+        limit = plan_limit(plan)
+        if limit is None:
+            problems.append("plan must be starter, standard, or 48-hour watch")
+        elif len(data.get("urls", [])) > limit:
+            problems.append(f"plan '{plan}' allows at most {limit} URLs; got {len(data.get('urls', []))}")
+    cadence = str(data.get("cadence", "")).strip().lower()
+    if cadence and cadence not in {"daily", "weekdays", "weekdays only", "48-hour", "48-hour watch with daily updates"}:
+        problems.append("cadence must be daily, weekdays only, or 48-hour watch with daily updates")
+    return problems
 
 
 def parse_url_item(raw: Any) -> UrlItem:
@@ -119,7 +178,8 @@ def validate_public_url(url: str) -> list[str]:
             problems.append(reason)
     if p.username or p.password:
         problems.append("URL must not contain embedded credentials")
-    if any(token in url.lower() for token in ["token=", "api_key=", "apikey=", "password=", "secret=", "access_token="]):
+    query_keys = {part.split("=", 1)[0].lower() for part in re.split(r"[&;]", p.query) if part}
+    if query_keys & SECRET_QUERY_KEYS or any(token in url.lower() for token in ["token=", "api_key=", "apikey=", "password=", "secret=", "access_token="]):
         problems.append("URL appears to contain a secret/token")
     return problems
 
@@ -251,11 +311,14 @@ def run(config_path: Path) -> Path:
 
     title = f"# Micro Change Watch — {checked}"
     summary = f"Summary: {changed} changed, {unchanged} unchanged, {baselined} baselined, {errors} errors."
+    review_note = "Operator review: check changed/error sections before forwarding; add a short business-readable note for meaningful changes."
     report = "\n\n".join([
         title,
         f"Customer: `{cfg['customer']}`",
         summary,
+        review_note,
         f"Plan: `{cfg.get('plan','unknown')}` | Cadence: `{cfg.get('cadence','daily')}` | Delivery: `{cfg.get('delivery','unspecified')}`",
+        f"Customer priorities: {cfg.get('important_changes','not specified')}",
         *sections,
     ]) + "\n"
     out = report_dir / f"{checked[:10]}.md"
@@ -273,7 +336,17 @@ def run(config_path: Path) -> Path:
 
 
 def validate(config_path: Path) -> int:
-    cfg = load_customer(config_path)
+    try:
+        raw_cfg = json.loads(config_path.read_text())
+        config_problems = validate_customer_config(raw_cfg)
+        if config_problems:
+            for problem in config_problems:
+                print(f"ERROR config: {problem}")
+            return 1
+        cfg = load_customer(config_path)
+    except Exception as e:
+        print(f"ERROR config: {e}")
+        return 1
     failures = 0
     for raw in cfg["urls"]:
         item = parse_url_item(raw)

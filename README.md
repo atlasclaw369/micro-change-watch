@@ -34,6 +34,8 @@ Example report: [`docs/sample-report.md`](docs/sample-report.md)
 
 No private dashboards, logins, cookies, credentials, personal data monitoring, captcha-heavy sites, scraping-sensitive targets, bypassing access controls, or trading/financial advice workflows.
 
+The monitor rejects localhost/private-network targets, embedded URL credentials, and secret-looking query parameters such as tokens, API keys, passwords, signatures, or access tokens before it fetches a page.
+
 ## Start a watch
 
 Open a request here:
