@@ -10,9 +10,9 @@ body:
   - type: input
     id: contact
     attributes:
-      label: Contact / delivery preference
-      description: GitHub issue comments, email handle, Telegram handle, etc. Do not post private secrets.
-      placeholder: "GitHub comments are fine / email me at ..."
+      label: Public contact preference
+      description: Use GitHub issue comments by default. Do not post email addresses, phone numbers, wallet addresses, private handles, credentials, or secrets.
+      placeholder: "GitHub issue comments are fine"
     validations:
       required: true
   - type: dropdown
@@ -30,7 +30,7 @@ body:
     id: urls
     attributes:
       label: Public URLs to monitor
-      description: One URL per line. Public pages only.
+      description: One URL per line. Starter max 3, Standard max 10, 48-hour watch max 5. Public pages only.
       placeholder: |
         https://example.com/pricing
         https://example.com/changelog
@@ -63,4 +63,6 @@ body:
         - label: These are public URLs that do not require login, cookies, private credentials, or bypassing access controls.
           required: true
         - label: I understand this is a concise monitoring digest, not legal/financial/trading advice.
+          required: true
+        - label: I understand URLs over the selected plan limit require upgrading or trimming scope before monitoring starts.
           required: true

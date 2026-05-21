@@ -13,8 +13,10 @@ import argparse
 import difflib
 import hashlib
 import html
+import ipaddress
 import json
 import re
+import socket
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -27,9 +29,45 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_STATE = ROOT / "state"
 DEFAULT_REPORTS = ROOT / "reports"
 
-BLOCKED_HOST_PATTERNS = [
-    "localhost", "127.0.0.1", "0.0.0.0", "169.254.", "10.", "192.168.",
-]
+def _ip_is_public(ip: ipaddress._BaseAddress) -> tuple[bool, str | None]:
+    if (
+        ip.is_private
+        or ip.is_loopback
+        or ip.is_link_local
+        or ip.is_reserved
+        or ip.is_multicast
+        or ip.is_unspecified
+    ):
+        return False, f"non-public network address is not allowed: {ip}"
+    return True, None
+
+
+def host_is_public(host: str) -> tuple[bool, str | None]:
+    normalized = host.strip("[]").rstrip(".").lower()
+    if normalized == "localhost" or normalized.endswith(".localhost"):
+        return False, "localhost is not allowed"
+    try:
+        ip = ipaddress.ip_address(normalized)
+        return _ip_is_public(ip)
+    except ValueError:
+        pass
+    try:
+        infos = socket.getaddrinfo(normalized, None, proto=socket.IPPROTO_TCP)
+    except Exception as e:
+        return False, f"host could not be resolved safely: {e}"
+    checked: set[str] = set()
+    for info in infos:
+        raw_ip = info[4][0]
+        if raw_ip in checked:
+            continue
+        checked.add(raw_ip)
+        try:
+            ok, reason = _ip_is_public(ipaddress.ip_address(raw_ip))
+        except ValueError:
+            return False, f"host resolved to invalid address: {raw_ip}"
+        if not ok:
+            return ok, reason
+    return True, None
 
 @dataclass
 class UrlItem:
@@ -75,9 +113,13 @@ def validate_public_url(url: str) -> list[str]:
     if not p.netloc:
         problems.append("URL missing host")
     host = p.hostname or ""
-    if any(host == pat or host.startswith(pat) for pat in BLOCKED_HOST_PATTERNS):
-        problems.append("local/private network URL is not allowed")
-    if any(token in url.lower() for token in ["token=", "api_key=", "apikey=", "password=", "secret="]):
+    if host:
+        ok, reason = host_is_public(host)
+        if not ok and reason:
+            problems.append(reason)
+    if p.username or p.password:
+        problems.append("URL must not contain embedded credentials")
+    if any(token in url.lower() for token in ["token=", "api_key=", "apikey=", "password=", "secret=", "access_token="]):
         problems.append("URL appears to contain a secret/token")
     return problems
 
@@ -113,6 +155,10 @@ def fetch_public_text(url: str, timeout: int = 25) -> tuple[str, str | None, dic
     })
     try:
         with urlopen(req, timeout=timeout) as r:
+            final_url = r.geturl()
+            redirect_problems = validate_public_url(final_url)
+            if redirect_problems:
+                return "", "redirect target rejected: " + "; ".join(redirect_problems), {}
             raw_bytes = r.read(1_500_000)
             headers = {k.lower(): v for k, v in r.headers.items()}
             status = getattr(r, "status", 200)

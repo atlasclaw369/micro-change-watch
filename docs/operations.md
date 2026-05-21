@@ -21,7 +21,9 @@ python3 scripts/change_watch.py run customers/<customer>.json
 
 Reports appear under `reports/<customer>/`.
 
-If delivery is GitHub issue comments, paste the concise report into the intake issue. If delivery is Telegram/email, forward the Markdown report.
+Before sending a report, manually review changed diffs, remove boilerplate/noise, and add a 1–2 sentence customer-facing summary for each meaningful change. The script creates evidence; the operator owns the concise business-readable digest.
+
+If delivery is GitHub issue comments, paste the concise reviewed report into the intake issue. If delivery is Telegram/email, forward the Markdown report.
 
 ## Stop conditions
 
