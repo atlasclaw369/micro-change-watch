@@ -1,0 +1,66 @@
+name: Start a Micro Change Watch
+about: Request daily monitoring for public URLs
+labels: ["watch-request"]
+title: "Watch request: <your project/company>"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for requesting a Micro Change Watch. Public URLs only — no private dashboards, logins, credentials, personal data, captcha-heavy sites, or access-control bypassing.
+  - type: input
+    id: contact
+    attributes:
+      label: Contact / delivery preference
+      description: GitHub issue comments, email handle, Telegram handle, etc. Do not post private secrets.
+      placeholder: "GitHub comments are fine / email me at ..."
+    validations:
+      required: true
+  - type: dropdown
+    id: plan
+    attributes:
+      label: Plan
+      options:
+        - "$9/month — Starter: 3 URLs"
+        - "$19/month — Standard: 10 URLs"
+        - "$10 one-off — 48-hour watch: 5 URLs"
+        - "Not sure yet — please scope it"
+    validations:
+      required: true
+  - type: textarea
+    id: urls
+    attributes:
+      label: Public URLs to monitor
+      description: One URL per line. Public pages only.
+      placeholder: |
+        https://example.com/pricing
+        https://example.com/changelog
+        https://github.com/example/project/releases
+    validations:
+      required: true
+  - type: textarea
+    id: important_changes
+    attributes:
+      label: What changes matter?
+      description: Tell me what to prioritize or ignore.
+      placeholder: "Pricing changes, new release notes, plan limit changes, deprecated API docs, etc."
+    validations:
+      required: true
+  - type: dropdown
+    id: cadence
+    attributes:
+      label: Cadence
+      options:
+        - "Daily digest"
+        - "Weekdays only"
+        - "48-hour watch with daily updates"
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirm scope
+      options:
+        - label: These are public URLs that do not require login, cookies, private credentials, or bypassing access controls.
+          required: true
+        - label: I understand this is a concise monitoring digest, not legal/financial/trading advice.
+          required: true

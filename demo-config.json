@@ -1,0 +1,10 @@
+{
+  "customer": "demo",
+  "urls": [
+    "https://news.ycombinator.com/news",
+    "https://github.com/atlasclaw369/tiny-github-fix-sprint",
+    "https://github.blog/changelog/"
+  ],
+  "state_dir": "/home/atlas/money-lab/change-watch-microservice/state",
+  "report_dir": "/home/atlas/money-lab/change-watch-microservice/reports"
+}

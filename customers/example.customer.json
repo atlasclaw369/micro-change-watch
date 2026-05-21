@@ -1,0 +1,24 @@
+{
+  "customer": "demo",
+  "plan": "starter",
+  "cadence": "daily",
+  "delivery": "internal-demo",
+  "important_changes": "pricing, changelog, release, docs updates",
+  "urls": [
+    {
+      "url": "https://github.blog/changelog/",
+      "name": "GitHub Blog Changelog",
+      "why": "platform/product changes"
+    },
+    {
+      "url": "https://news.ycombinator.com/news",
+      "name": "HN front page",
+      "why": "demo of frequently changing page"
+    },
+    {
+      "url": "https://github.com/atlasclaw369/tiny-github-fix-sprint",
+      "name": "Existing intake repo",
+      "why": "demo repo page"
+    }
+  ]
+}
