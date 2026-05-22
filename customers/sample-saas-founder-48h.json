@@ -1,0 +1,34 @@
+{
+  "customer": "sample-saas-founder-48h",
+  "plan": "$10 one-off — 48-hour watch: 5 URLs",
+  "cadence": "48-hour watch with daily updates",
+  "delivery": "GitHub issue comment after operator review",
+  "important_changes": "pricing changes, plan-limit changes, API/changelog updates, release notes, and status-page incidents that could affect launch-week positioning or integrations",
+  "urls": [
+    {
+      "url": "https://github.blog/changelog/",
+      "name": "GitHub Blog Changelog",
+      "why": "Platform/product changes that may affect developer tooling and integrations"
+    },
+    {
+      "url": "https://www.notion.com/releases",
+      "name": "Notion releases",
+      "why": "Example competitor/vendor release page for product update monitoring"
+    },
+    {
+      "url": "https://www.cloudflarestatus.com/",
+      "name": "Cloudflare status",
+      "why": "Example public status page where incidents can affect customer-facing services"
+    },
+    {
+      "url": "https://stripe.com/docs/changelog",
+      "name": "Stripe docs changelog",
+      "why": "Example API/docs changelog for integration-impact monitoring"
+    },
+    {
+      "url": "https://github.com/atlasclaw369/micro-change-watch",
+      "name": "Micro Change Watch intake repo",
+      "why": "Public intake surface proof/check-out counter"
+    }
+  ]
+}
